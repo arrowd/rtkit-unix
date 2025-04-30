@@ -1,0 +1,6 @@
+build
+install
+.cache
+*.kdev4
+.idea
+CMakeLists.txt.user

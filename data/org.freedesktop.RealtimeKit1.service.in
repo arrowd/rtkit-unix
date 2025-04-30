@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.RealtimeKit1
+Exec=@CMAKE_INSTALL_PREFIX@/libexec/rtkit-daemon
+User=@RTKIT_USER@
