@@ -70,7 +70,7 @@ std::optional<uid_t> GetUIDForPID(pid_t process)
 
 bool PIDContainsTID(pid_t process, qulonglong thread)
 {
-    return thr_kill2(process, thread, 0) == 0;
+    return thr_kill2(process, static_cast<long>(thread), 0) == 0;
 }
 
 bool PIDHasNonStandardSchedulingPolicy(pid_t process)
@@ -101,9 +101,9 @@ bool SetHighPriority(pid_t process, qulonglong thread, int priority)
     struct rtprio rtp;
     rtp.prio = priority;
     rtp.type = RTP_PRIO_NORMAL;
-    bool ret = rtprio_thread(RTP_SET, thread, &rtp) == 0;
+    bool ret = rtprio_thread(RTP_SET, static_cast<lwpid_t>(thread), &rtp) == 0;
 
-    ret &= setpriority(PRIO_PROCESS, process, priority) == 0;
+    ret &= setpriority(PRIO_PROCESS, static_cast<pid_t>(process), priority) == 0;
     return ret;
 }
 
@@ -115,7 +115,7 @@ bool SetRealtimePriority(pid_t process, qulonglong thread, uint priority)
     rtp.prio = priority;
     rtp.type = RTP_PRIO_REALTIME;
 
-    return rtprio_thread(RTP_SET, thread, &rtp) == 0;
+    return rtprio_thread(RTP_SET, static_cast<lwpid_t>(thread), &rtp) == 0;
 }
 
 bool SetIdlePriority(pid_t process, qulonglong thread, uint priority)
@@ -126,7 +126,7 @@ bool SetIdlePriority(pid_t process, qulonglong thread, uint priority)
     rtp.prio = priority;
     rtp.type = RTP_PRIO_IDLE;
 
-    return rtprio_thread(RTP_SET, thread, &rtp) == 0;
+    return rtprio_thread(RTP_SET, static_cast<lwpid_t>(thread), &rtp) == 0;
 }
 
 bool ResetAllPriorities(pid_t process, qulonglong thread)
@@ -136,9 +136,9 @@ bool ResetAllPriorities(pid_t process, qulonglong thread)
     rtp.type = RTP_PRIO_NORMAL;
 
     if (thread)
-        return rtprio_thread(RTP_SET, thread, &rtp) == 0;
+        return rtprio_thread(RTP_SET, static_cast<lwpid_t>(thread), &rtp) == 0;
     else
-        return rtprio(RTP_SET, process, &rtp) == 0;
+        return rtprio(RTP_SET, static_cast<pid_t>(process), &rtp) == 0;
 }
 
 }
