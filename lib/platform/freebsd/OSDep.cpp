@@ -98,10 +98,10 @@ void ResolvePID(pid_t process, uid_t* userOut, qulonglong* startTimeOut)
 
 bool SetHighPriority(pid_t process, qulonglong thread, int priority)
 {
-    Q_UNUSED(thread);
-
-    sched_param param = {0};
-    bool ret = sched_setscheduler(process, SCHED_OTHER, &param) == 0;
+    struct rtprio rtp;
+    rtp.prio = priority;
+    rtp.type = RTP_PRIO_NORMAL;
+    bool ret = rtprio_thread(RTP_SET, thread, &rtp) == 0;
 
     ret &= setpriority(PRIO_PROCESS, process, priority) == 0;
     return ret;
@@ -109,18 +109,13 @@ bool SetHighPriority(pid_t process, qulonglong thread, int priority)
 
 bool SetRealtimePriority(pid_t process, qulonglong thread, uint priority)
 {
-    sched_param param = {0};
-    param.sched_priority = priority;
-    bool ret = sched_setscheduler(process, SCHED_RR, &param) == 0;
+    Q_UNUSED(process);
 
-/*
     struct rtprio rtp;
     rtp.prio = priority;
     rtp.type = RTP_PRIO_REALTIME;
-    ret &= rtprio_thread(RTP_SET, thread, &rtp) == 0;
-*/
 
-    return ret;
+    return rtprio_thread(RTP_SET, thread, &rtp) == 0;
 }
 
 bool SetIdlePriority(pid_t process, qulonglong thread, uint priority)
@@ -136,20 +131,14 @@ bool SetIdlePriority(pid_t process, qulonglong thread, uint priority)
 
 bool ResetAllPriorities(pid_t process, qulonglong thread)
 {
-    bool ret = SetHighPriority(process, thread, 0);
-
-/*
     struct rtprio rtp;
     rtp.prio = 0;
     rtp.type = RTP_PRIO_NORMAL;
 
     if (thread)
-        ret &= rtprio_thread(RTP_SET, thread, &rtp) == 0;
+        return rtprio_thread(RTP_SET, thread, &rtp) == 0;
     else
-        ret &= rtprio(RTP_SET, process, &rtp) == 0;
-*/
-
-    return ret;
+        return rtprio(RTP_SET, process, &rtp) == 0;
 }
 
 }
