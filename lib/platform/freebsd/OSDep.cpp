@@ -99,7 +99,7 @@ void ResolvePID(pid_t process, uid_t* userOut, qulonglong* startTimeOut)
 bool SetHighPriority(pid_t process, qulonglong thread, int priority)
 {
     struct rtprio rtp;
-    rtp.prio = priority;
+    rtp.prio = 0;
     rtp.type = RTP_PRIO_NORMAL;
     bool ret = rtprio_thread(RTP_SET, static_cast<lwpid_t>(thread), &rtp) == 0;
 
