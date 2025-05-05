@@ -26,6 +26,8 @@ void Process::ForEach(const std::function<void (Process*)>& f)
 
 bool Process::IsValid() const
 {
+    if (m_user == -1u || m_startTime == 0)
+        return false;
     return *this == Process(m_process);
 }
 
