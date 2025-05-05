@@ -37,9 +37,12 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <sys/thr.h>
 
 static pid_t _gettid(void) {
-        return (pid_t) syscall(SYS_thr_self);
+        long ret;
+        thr_self(&ret);
+        return (pid_t) ret;
 }
 
 static int translate_error(const char *name) {
