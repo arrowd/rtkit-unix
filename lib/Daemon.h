@@ -9,6 +9,7 @@
 
 #include <QDBusConnection>
 #include <QDBusContext>
+#include <QHash>
 #include <QVector>
 
 class DBusSavedContext;
@@ -20,6 +21,9 @@ enum class PriorityType
     Realtime,
     Idle
 };
+
+// <amount of actions, timestamp>
+typedef QPair<uint, qulonglong> BurstInfo;
 
 class Daemon : public QObject,
                protected QDBusContext
@@ -59,8 +63,10 @@ public Q_SLOTS:
 
 private:
     void garbageCollect();
+    bool checkBursting(uint userId);
 
     QDBusConnection m_bus;
     pid_t m_daemonPid;
     QVector<std::shared_ptr<Process>> m_knownProcesses;
+    QHash<uint, BurstInfo> m_burstInfos;
 };

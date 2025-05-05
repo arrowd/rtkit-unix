@@ -4,6 +4,7 @@
  */
 
 #include <QCoreApplication>
+#include <QDateTime>
 
 #include <AuthQueue>
 #include <DBusSavedContext>
@@ -126,6 +127,9 @@ void Daemon::MakeThreadHighPriorityWithPID(qulonglong process, qulonglong thread
     if (!callerUid.isValid())
         DBUS_RETHROW_CONTEXT_VOID(callerUid);
 
+    if (!checkBursting(callerUid))
+        DBUS_THROW_CONTEXT_VOID("org.freedesktop.DBus.Error.AccessDenied", "You are calling too often");
+
     garbageCollect();
 
     std::shared_ptr<Process> proc = std::make_shared<Process>(process);
@@ -169,6 +173,9 @@ void Daemon::MakeThreadRealtimeWithPID(qulonglong process, qulonglong thread, ui
     auto callerUid = connection().interface()->serviceUid(message().service());
     if (!callerUid.isValid())
         DBUS_RETHROW_CONTEXT_VOID(callerUid);
+
+    if (!checkBursting(callerUid))
+        DBUS_THROW_CONTEXT_VOID("org.freedesktop.DBus.Error.AccessDenied", "You are calling too often");
 
     garbageCollect();
 
@@ -235,4 +242,27 @@ void Daemon::garbageCollect()
     erase_if(m_knownProcesses, [](const auto& proc) {
         return !proc->IsValid() || !proc->HasNonStandardSchedulingPolicy();
     });
+}
+
+bool Daemon::checkBursting(uint userId)
+{
+    // rtkit defaults
+    const auto burstInterval = 20;
+    const auto maxActionsPerBurst = 25;
+
+    auto& bi = m_burstInfos[userId];
+    auto now = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+    if (now > bi.second + burstInterval) {
+        bi.first = 0;
+        bi.second = now;
+        return true;
+    }
+
+    if (bi.first >= maxActionsPerBurst)
+        return false;
+
+    bi.first++;
+
+    return true;
 }
